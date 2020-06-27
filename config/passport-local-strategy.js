@@ -8,13 +8,15 @@ passport.use(
   new LocalStrategy(
     {
       usernameField: "email",
+      passReqToCallback: true,
     },
-    async function (email, password, done) {
+    async function (req, email, password, done) {
       // find the user and stablish the identity
       let user = await User.findOne({ email: email.toLowerCase() });
       const match = await bcrypt.compare(password, user.password);
       if (!user || !match) {
         console.log("Invalid user name or password");
+        req.flash("error", "Invalid user name or password");
         return done(null, false);
       }
       // If user found

@@ -37,6 +37,7 @@ module.exports.CreateUser = async function (req, res) {
         name: req.body.name,
         phone: req.body.phone,
       });
+      req.flash("success", "Register SuccessFully");
       return res.redirect("/users/sign-in");
     }
   } catch (err) {
@@ -46,11 +47,13 @@ module.exports.CreateUser = async function (req, res) {
 };
 
 module.exports.CreateSession = function (req, res) {
+  req.flash("success", "Logged in successfully");
   return res.redirect("/");
 };
 
 module.exports.destroySession = function (req, res) {
   req.logout();
+  req.flash("success", "Logged Out SuccessFully");
   return res.redirect("/");
 };
 
@@ -65,10 +68,6 @@ module.exports.reset = async function (req, res) {
   console.log("User", user);
   console.log("body", req.body);
   let match = await bcrypt.compare(req.body.oldpassword, user.password);
-  // let user = await User.find({
-  //   email: req.user.email,
-  //   password: req.body.oldpassword,
-  // });
   if (match) {
     console.log("hii");
     let passwordReq = req.body.password;
@@ -77,6 +76,7 @@ module.exports.reset = async function (req, res) {
       { email: req.user.email },
       { password: newPassword }
     );
+    req.flash("success", "Rest Password SuccessFully");
     return res.redirect("/");
   }
   return res.redirect("back");

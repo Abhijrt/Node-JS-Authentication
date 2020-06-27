@@ -7,6 +7,9 @@ const port = 8000;
 // take the server as a app
 const app = express();
 
+const flash = require("connect-flash");
+const customMiddleware = require("./config/middleware");
+
 // importing the sass middleware and configure so that we can use it to design our page in simple way
 const sassMiddleware = require("node-sass-middleware");
 app.use(
@@ -79,6 +82,10 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(passport.setAuthenticatedUser);
 
+// tell the rserver to use flash
+app.use(flash());
+
+app.use(customMiddleware.setFlash);
 // tell the app to use the router
 app.use("/", require("./routes"));
 
