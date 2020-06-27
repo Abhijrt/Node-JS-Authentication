@@ -1,4 +1,5 @@
 const User = require("../models/users");
+const bcrypt = require("bcrypt");
 
 // When a sign page request come then this function run
 module.exports.SignIn = function (req, res) {
@@ -25,10 +26,14 @@ module.exports.CreateUser = async function (req, res) {
       return res.redirect("back");
     }
     let user = await User.findOne({ email: requestEmail });
+    let password = req.body.password;
+    console.log("password", password);
+    let newPassword = await bcrypt.hash(password, 10);
+    console.log("NewPassword", newPassword);
     if (!user) {
       user = await User.create({
         email: requestEmail,
-        password: req.body.password,
+        password: newPassword,
         name: req.body.name,
         phone: req.body.phone,
       });
@@ -56,15 +61,23 @@ module.exports.changePassword = function (req, res) {
 };
 
 module.exports.reset = async function (req, res) {
-  let user = await User.find({
-    email: req.user.email,
-    password: req.body.oldpassword,
-  });
-
-  if (user) {
+  let user = await User.findOne({ email: req.user.email });
+  console.log("User", user);
+  console.log("body", req.body);
+  let match = await bcrypt.compare(req.body.oldpassword, user.password);
+  // let user = await User.find({
+  //   email: req.user.email,
+  //   password: req.body.oldpassword,
+  // });
+  if (match) {
     console.log("hii");
-    await User.findOneAndUpdate({ password: req.body.password });
+    let passwordReq = req.body.password;
+    let newPassword = await bcrypt.hash(passwordReq, 10);
+    await User.findOneAndUpdate(
+      { email: req.user.email },
+      { password: newPassword }
+    );
     return res.redirect("/");
   }
-  return res.redirect("/users/restPassword");
+  return res.redirect("back");
 };

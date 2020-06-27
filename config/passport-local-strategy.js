@@ -1,6 +1,7 @@
 const passport = require("passport");
 const User = require("../models/users");
 const LocalStrategy = require("passport-local").Strategy;
+const bcrypt = require("bcrypt");
 
 // authentication using the passport
 passport.use(
@@ -8,20 +9,16 @@ passport.use(
     {
       usernameField: "email",
     },
-    function (email, password, done) {
+    async function (email, password, done) {
       // find the user and stablish the identity
-      User.findOne({ email: email.toLowerCase() }, function (err, user) {
-        if (err) {
-          console.log("Error in finding user");
-          return done(err);
-        }
-        if (!user || user.password != password) {
-          console.log("Invalid user name or password");
-          return done(null, false);
-        }
-        // If user found
-        return done(null, user);
-      });
+      let user = await User.findOne({ email: email.toLowerCase() });
+      const match = await bcrypt.compare(password, user.password);
+      if (!user || !match) {
+        console.log("Invalid user name or password");
+        return done(null, false);
+      }
+      // If user found
+      return done(null, user);
     }
   )
 );

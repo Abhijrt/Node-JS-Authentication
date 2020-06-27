@@ -34,7 +34,7 @@ router.get(
 
 router.get("/changePassword", usersController.changePassword);
 
-router.post("/resetpassword", usersController.reset);
+router.post("/resetPassword", usersController.reset);
 
 // exporting the router to be used in different module or files
 module.exports = router;
