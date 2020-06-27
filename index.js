@@ -19,6 +19,9 @@ app.use(
   })
 );
 
+// for taking req arguments content
+app.use(express.urlencoded());
+
 // tell the server to use the layouts and partials
 const expressLayouts = require("express-ejs-layouts");
 app.use(expressLayouts);
