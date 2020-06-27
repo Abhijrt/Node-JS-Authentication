@@ -40,6 +40,43 @@ app.use(express.static("./assets"));
 app.set("view engine", "ejs");
 app.set("views", "./views");
 
+//used for session cookie
+const session = require("express-session");
+const passport = require("passport");
+const passportLocal = require("./config/passport-local-strategy");
+//mongo store for storing session
+const MongoStore = require("connect-mongo")(session);
+
+//mongo store is used to store session cookie in DB
+app.use(
+  session({
+    name: "Nodejs-auth",
+    //todo change the secret before deployment in production
+    secret: "blahsomething",
+    saveUninitialized: false,
+    resave: false,
+    cookie: {
+      maxAge: 1000 * 60 * 100, //number of minutes in miliseconds
+    },
+    store: new MongoStore(
+      {
+        mongooseConnection: db,
+        autoRemove: "disabled",
+      },
+      function (err) {
+        if (err) {
+          console.log("Error in storing session");
+        }
+        console.log("Mongo Store Connected");
+      }
+    ),
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(passport.setAuthenticatedUser);
+
 // tell the app to use the router
 app.use("/", require("./routes"));
 
