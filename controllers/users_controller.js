@@ -11,7 +11,7 @@ module.exports.SignIn = function (req, res) {
 // When a sign up page request come this function run
 module.exports.SignUp = function (req, res) {
   return res.render("sign-up", {
-    title: "Sign In",
+    title: "Sign Up",
   });
 };
 
@@ -40,4 +40,31 @@ module.exports.CreateUser = async function (req, res) {
   }
 };
 
-module.exports.CreateSession = function (req, res) {};
+module.exports.CreateSession = function (req, res) {
+  return res.redirect("/");
+};
+
+module.exports.destroySession = function (req, res) {
+  req.logout();
+  return res.redirect("/");
+};
+
+module.exports.changePassword = function (req, res) {
+  res.render("changePassword", {
+    title: "Reset Password",
+  });
+};
+
+module.exports.reset = async function (req, res) {
+  let user = await User.find({
+    email: req.user.email,
+    password: req.body.oldpassword,
+  });
+
+  if (user) {
+    console.log("hii");
+    await User.findOneAndUpdate({ password: req.body.password });
+    return res.redirect("/");
+  }
+  return res.redirect("/users/restPassword");
+};

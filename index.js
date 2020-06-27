@@ -44,6 +44,8 @@ app.set("views", "./views");
 const session = require("express-session");
 const passport = require("passport");
 const passportLocal = require("./config/passport-local-strategy");
+const passportGoogle = require("./config/passport-google-oauth2-stratregy");
+
 //mongo store for storing session
 const MongoStore = require("connect-mongo")(session);
 
