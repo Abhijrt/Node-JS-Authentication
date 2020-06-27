@@ -5,11 +5,11 @@ const express = require("express");
 const router = express.Router();
 
 // fetching the home controller
-const homeController = require("../controllers/home_controller");
+const usersController = require("../controllers/users_controller");
 
-// calling the home controller when a home page request come
-router.get("/", homeController.home);
-router.use("/users", require("./users"));
+// calling the signIN controller when a sign page request come or sign up
+router.get("/sign-in", usersController.SignIn);
+router.get("/sign-up", usersController.SignUp);
 
 // exporting the router to be used in different module or files
 module.exports = router;

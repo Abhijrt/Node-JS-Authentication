@@ -1,0 +1,11 @@
+.sign-up-container {
+  background-image: url("../images/backgroung.jpg");
+  color: white; }
+  .sign-up-container .btns {
+    width: 50%;
+    margin: auto; }
+  .sign-up-container input {
+    border-radius: 30%; }
+  .sign-up-container .another-container {
+    width: 50%;
+    margin: auto; }

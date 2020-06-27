@@ -1,0 +1,13 @@
+.sign-in-container {
+  width: 50%;
+  margin: auto;
+  background-image: url("../images/backgroung.jpg");
+  color: white; }
+  .sign-in-container .form-container {
+    width: 50%;
+    margin: auto; }
+    .sign-in-container .form-container input {
+      border-radius: 30%; }
+    .sign-in-container .form-container .btns {
+      width: 50%;
+      margin: auto; }
