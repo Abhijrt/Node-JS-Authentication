@@ -10,17 +10,26 @@ passport.use(
       usernameField: "email",
       passReqToCallback: true,
     },
-    async function (req, email, password, done) {
+    function (req, email, password, done) {
       // find the user and stablish the identity
-      let user = await User.findOne({ email: email.toLowerCase() });
-      const match = await bcrypt.compare(password, user.password);
-      if (!user || !match) {
-        console.log("Invalid user name or password");
-        req.flash("error", "Invalid user name or password");
-        return done(null, false);
-      }
-      // If user found
-      return done(null, user);
+      User.findOne({ email: email.toLowerCase() }, function (err, user) {
+        if (err) {
+          console.log("Error in finding user");
+          return done(err);
+        }
+
+        if (!user) {
+          req.flash("error", "Email address is not Register");
+          return done(null, false);
+        }
+        bcrypt.compare(password, user.password, function (err, result) {
+          if (result != true) {
+            req.flash("error", "Invalid Username and Password");
+            return done(null, false);
+          }
+          return done(null, user);
+        });
+      });
     }
   )
 );

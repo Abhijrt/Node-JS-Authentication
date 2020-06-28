@@ -1,5 +1,7 @@
 const User = require("../models/users");
 const bcrypt = require("bcrypt");
+const forgotMailer = require("../mailers/emailMailer");
+const crypto = require("crypto");
 
 // When a sign page request come then this function run
 module.exports.SignIn = function (req, res) {
@@ -22,7 +24,7 @@ module.exports.CreateUser = async function (req, res) {
     console.log(req.body);
     let requestEmail = req.body.email;
     if (req.body.password !== req.body.confirm_password) {
-      // req.flash("error", "password does not matched");
+      req.flash("error", "password does not matched");
       return res.redirect("back");
     }
     let user = await User.findOne({ email: requestEmail });
@@ -76,8 +78,28 @@ module.exports.reset = async function (req, res) {
       { email: req.user.email },
       { password: newPassword }
     );
-    req.flash("success", "Rest Password SuccessFully");
+    req.flash("success", "Reset Password SuccessFully");
     return res.redirect("/");
   }
+  return res.redirect("back");
+};
+
+module.exports.forgotPassword = function (req, res) {
+  return res.render("forgotPassword", {
+    title: "Forgot Password",
+  });
+};
+
+module.exports.forgot = async function (req, res) {
+  console.log(req.body);
+  let user = await User.findOne({ email: req.body.email });
+  if (user) {
+    req.flash("success", "We send you the Mail for reset Password");
+    let token = crypto.randomBytes(32).toString("hex");
+    console.log(token);
+    forgotMailer.forgotPassword(user);
+    return res.redirect("back");
+  }
+  req.flash("error", "User not Available");
   return res.redirect("back");
 };
