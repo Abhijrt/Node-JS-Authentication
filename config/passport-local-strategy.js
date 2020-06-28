@@ -17,11 +17,11 @@ passport.use(
           console.log("Error in finding user");
           return done(err);
         }
-
         if (!user) {
           req.flash("error", "Email address is not Register");
           return done(null, false);
         }
+        // comparing the encrypted password and the password
         bcrypt.compare(password, user.password, function (err, result) {
           if (result != true) {
             req.flash("error", "Invalid Username and Password");

@@ -1,10 +1,7 @@
 const User = require("../models/users");
 const bcrypt = require("bcrypt");
-const forgotMailer = require("../mailers/emailMailer");
 const crypto = require("crypto");
 const nodeMailer = require("../config/nodemailer");
-const { localsName } = require("ejs");
-const { url } = require("inspector");
 
 // When a sign page request come then this function run
 module.exports.SignIn = function (req, res) {
@@ -24,17 +21,17 @@ module.exports.SignUp = function (req, res) {
 // when a user registration done then this function run
 module.exports.CreateUser = async function (req, res) {
   try {
-    console.log(req.body);
     let requestEmail = req.body.email;
+    // matching the password
     if (req.body.password !== req.body.confirm_password) {
       req.flash("error", "password does not matched");
       return res.redirect("back");
     }
+    // finding the user if already exist
     let user = await User.findOne({ email: requestEmail });
     let password = req.body.password;
-    console.log("password", password);
     let newPassword = await bcrypt.hash(password, 10);
-    console.log("NewPassword", newPassword);
+    // if not exist then create
     if (!user) {
       user = await User.create({
         email: requestEmail,
@@ -51,17 +48,20 @@ module.exports.CreateUser = async function (req, res) {
   }
 };
 
+// when user wants to login
 module.exports.CreateSession = function (req, res) {
   req.flash("success", "Logged in successfully");
   return res.redirect("/");
 };
 
+// when user wants to logout
 module.exports.destroySession = function (req, res) {
   req.logout();
   req.flash("success", "Logged Out SuccessFully");
   return res.redirect("/");
 };
 
+// when user want to change the password and forgot password
 module.exports.changePassword = function (req, res) {
   // console.log("url", req.url);
   let token = req.url.slice(16);
@@ -72,14 +72,13 @@ module.exports.changePassword = function (req, res) {
   });
 };
 
+// when user set new passwprd
 module.exports.reset = async function (req, res) {
+  // when user login
   if (req.isAuthenticated()) {
     let user = await User.findOne({ email: req.user.email });
-    console.log("User", user);
-    console.log("body", req.body);
     let match = await bcrypt.compare(req.body.oldpassword, user.password);
     if (match) {
-      console.log("hii");
       let passwordReq = req.body.password;
       let newPassword = await bcrypt.hash(passwordReq, 10);
       await User.findOneAndUpdate(
@@ -91,10 +90,8 @@ module.exports.reset = async function (req, res) {
     }
     return res.redirect("back");
   }
-  // console.log("Not Login", req.body);
-  // console.log(req.params);
+  // when user is not login
   let token = req.params.token;
-  // console.log(token);
   let user = User.findOne({ resetLink: token });
   if (user) {
     let passwordReq = req.body.password;
@@ -109,24 +106,25 @@ module.exports.reset = async function (req, res) {
   return res.redirect("back");
 };
 
+// when user click on forgot password
 module.exports.forgotPassword = function (req, res) {
   return res.render("forgotPassword", {
     title: "Forgot Password",
   });
 };
 
+// when we send the mail for the user to reset password
 module.exports.forgot = async function (req, res) {
   console.log(req.body);
   let user = await User.findOne({ email: req.body.email });
   if (user) {
-    req.flash("success", "We send you the Mail for reset Password");
     let token = crypto.randomBytes(32).toString("hex");
     const data = {
       from: "abhi.jrt12@gmail.com",
       to: req.body.email,
       subject: "Forgot password link send",
       html: `<h2>Please Click on Given Link to Reset Your Password !</h2>
-      <p><a>http://localhost:8000/users/changePassword/${token}</a></p>`,
+      <a>http://localhost:8000/users/changePassword/${token}</a>`,
     };
     return User.updateOne({ resetLink: token }, function (err, success) {
       if (err) {
@@ -136,8 +134,10 @@ module.exports.forgot = async function (req, res) {
         nodeMailer.tranporter.sendMail(data, (err, info) => {
           if (err) {
             console.log("error in searching mail", info, err);
-            return;
+            req.flash("error", "Not available emial id");
+            return res.redirect("back");
           }
+          req.flash("success", "We send you the Mail for reset Password");
           console.log("Message Sent!");
           return res.redirect("back");
         });

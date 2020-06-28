@@ -2,6 +2,7 @@ const nodemailer = require("nodemailer");
 const ejs = require("ejs");
 const path = require("path");
 
+// create the transporter to use gmail as a service
 let tranporter = nodemailer.createTransport({
   service: "gmail",
   host: "smtp.gmail.com",
@@ -13,6 +14,7 @@ let tranporter = nodemailer.createTransport({
   },
 });
 
+//if we use the template then we render the template aslo
 let renderTemplate = (data, relativePath) => {
   let mailHTML;
   ejs.renderFile(
