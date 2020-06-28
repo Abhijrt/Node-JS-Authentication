@@ -8,8 +8,8 @@ let tranporter = nodemailer.createTransport({
   post: 587,
   secure: false,
   auth: {
-    user: "abhi.jrt12@gmail.com", //email id which send the mail
-    pass: "abhirlajj", //password of the gmail
+    user: "", //email id which send the mail
+    pass: "", //password of the gmail
   },
 });
 

@@ -32,9 +32,9 @@ router.get(
   usersController.CreateSession
 );
 
-router.get("/changePassword", usersController.changePassword);
+router.get("/changePassword/:token", usersController.changePassword);
 
-router.post("/resetPassword", usersController.reset);
+router.post("/resetPassword/:token", usersController.reset);
 
 router.get("/forgotPassword", usersController.forgotPassword);
 

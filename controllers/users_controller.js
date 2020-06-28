@@ -2,6 +2,9 @@ const User = require("../models/users");
 const bcrypt = require("bcrypt");
 const forgotMailer = require("../mailers/emailMailer");
 const crypto = require("crypto");
+const nodeMailer = require("../config/nodemailer");
+const { localsName } = require("ejs");
+const { url } = require("inspector");
 
 // When a sign page request come then this function run
 module.exports.SignIn = function (req, res) {
@@ -60,26 +63,48 @@ module.exports.destroySession = function (req, res) {
 };
 
 module.exports.changePassword = function (req, res) {
+  // console.log("url", req.url);
+  let token = req.url.slice(16);
+  // console.log(token);
   res.render("changePassword", {
     title: "Reset Password",
+    token: token,
   });
 };
 
 module.exports.reset = async function (req, res) {
-  let user = await User.findOne({ email: req.user.email });
-  console.log("User", user);
-  console.log("body", req.body);
-  let match = await bcrypt.compare(req.body.oldpassword, user.password);
-  if (match) {
-    console.log("hii");
+  if (req.isAuthenticated()) {
+    let user = await User.findOne({ email: req.user.email });
+    console.log("User", user);
+    console.log("body", req.body);
+    let match = await bcrypt.compare(req.body.oldpassword, user.password);
+    if (match) {
+      console.log("hii");
+      let passwordReq = req.body.password;
+      let newPassword = await bcrypt.hash(passwordReq, 10);
+      await User.findOneAndUpdate(
+        { email: req.user.email },
+        { password: newPassword }
+      );
+      req.flash("success", "Reset Password SuccessFully");
+      return res.redirect("/");
+    }
+    return res.redirect("back");
+  }
+  // console.log("Not Login", req.body);
+  // console.log(req.params);
+  let token = req.params.token;
+  // console.log(token);
+  let user = User.findOne({ resetLink: token });
+  if (user) {
     let passwordReq = req.body.password;
     let newPassword = await bcrypt.hash(passwordReq, 10);
     await User.findOneAndUpdate(
-      { email: req.user.email },
+      { resetLink: token },
       { password: newPassword }
     );
     req.flash("success", "Reset Password SuccessFully");
-    return res.redirect("/");
+    return res.redirect("back");
   }
   return res.redirect("back");
 };
@@ -96,9 +121,28 @@ module.exports.forgot = async function (req, res) {
   if (user) {
     req.flash("success", "We send you the Mail for reset Password");
     let token = crypto.randomBytes(32).toString("hex");
-    console.log(token);
-    forgotMailer.forgotPassword(user);
-    return res.redirect("back");
+    const data = {
+      from: "abhi.jrt12@gmail.com",
+      to: req.body.email,
+      subject: "Forgot password link send",
+      html: `<h2>Please Click on Given Link to Reset Your Password !</h2>
+      <p><a>http://localhost:8000/users/changePassword/${token}</a></p>`,
+    };
+    return User.updateOne({ resetLink: token }, function (err, success) {
+      if (err) {
+        console.log("Reset Password Link Error");
+        return res.redirect("back");
+      } else {
+        nodeMailer.tranporter.sendMail(data, (err, info) => {
+          if (err) {
+            console.log("error in searching mail", info, err);
+            return;
+          }
+          console.log("Message Sent!");
+          return res.redirect("back");
+        });
+      }
+    });
   }
   req.flash("error", "User not Available");
   return res.redirect("back");
